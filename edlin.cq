@@ -1,0 +1,99 @@
+/*	最終更新日時 2013年04月20日09:31:58
+	CharmQ言語の特徴的なことは、実数型を一切サポートせず分数型を導入したことである。
+	ここでは基本的に他言語と明確に区分するためCharmQを大文字で記述するが、小文字でも構わない。
+*/
+
+/*	変数型は5種類用意されている。整数型、分数型、複素数型、四元数型と文字列型である。
+	文字列は大きさを気にする必要は普通ない(文字列が増えた場合、メモリ上は自動拡張される)。
+
+	整数型	: INT (C言語: signed __int64相当)
+	分数型	: RAT
+	複素数型: DBL
+	四元数型: QTR
+	文字列型: STR (C言語: unsigned char[]相当)
+*/
+
+/*	C言語のprintf関数に当たるOUT関数が存在し、強力な型安全性を提供する。
+
+	C言語 : printf("%d! = %d\n", cnt, fanc(cnt));	←fanc関数の返値型によっては不正
+
+	CharmQ: OUT "" + CNT +"! = " + FUNC(CNT) + "\n"	←何型だろうが連結して文字列にできる
+*/
+
+/*	FOR文、WHILE文やREPEAT文などのループ構文内、IF文やSWICH文中のCASE文などの条件構文内では
+	文よりもインデントが下げられた以降の行をブロックと認識し、繰り返しや条件分岐の範囲とする。
+	副次的にぶらさがりIF文やFOR文などを推奨し、読み間違えやすいインデントのバラつきを排除する。
+
+	C言語 :	for (int cnt = 1; cnt <= 10; cnt++)
+		printf("%d! = %d\n", cnt, fanc(cnt));	←繰り返されることが判別しづらい
+
+	CharmQ:	FOR CNT, 1, 10
+			OUT "" + CNT +"! = " + FUNC(CNT) + "\n"
+*/
+
+/*	FOR文、WHILE文やREPEAT文は内部的にCOUNT@数字(ネスト深さ)の整数型変数を持ち、
+	新たな変数の確保なしに定数回のループを可能にし、その回数を測ることができる。
+	(なお、REPEAT文COUNT@数字は開始0終了n-1である)
+
+	REPEAT 5
+		REPEAT 5
+			OUT "" + (COUNT@0 * COUNT@1) +" "
+		OUT "\n"
+*/
+
+/* EDLIN 中途半端 */
+
+MAIN INT %1, INT %2
+
+	INT FLAG = 0, CNT
+	STR BUFFER, KEY ,COPY
+
+	IF %0 = 0	/* 渡された引数が0個 */
+		END
+
+	LOAD %1, BUFFER	/* 第一引数に指定されたファイルを開く */
+	OUT "ファイルを終わりまで読み込みました。\n>>"
+
+	FOR
+		IN KEY
+		IF KEY.0 >< 0
+			SWITCH KEY.(KEY.0 - 1)
+			CASE 'l'
+			CASE 'L'
+				/* none */
+			CASE 'i'
+			CASE 'I'
+				FOR CNT, 0
+					IF KEY.CNT = 'I'
+						BREAK
+					IF KEY.CNT < '0' || '9' < KEY.CNT
+						FLAG = 0
+						BREAK
+					FLAG = FLAG * 10 + KEY.CNT - '0'
+				/* FLAG行に挿入 */
+			CASE 'd'
+			CASE 'D'
+				/* none */
+			CASE 'q'
+			CASE 'Q'
+				END
+			CASE 'e'
+			CASE 'E'
+				FLAG+
+			OTHER
+				FOR CNT, 0
+					IF KEY.CNT = 0
+						BREAK
+					IF KEY.CNT < '0' || '9' < KEY.CNT
+						FLAG = 0
+						BREAK
+					FLAG = FLAG * 10 + KEY.CNT - '0'
+				IF FLAG = 0
+					OUT "不明なコマンドです。\n"
+				ELSE
+					/* FLAG行の編集 */
+					FLAG = 0
+		IF FLAG >< 0
+			BREAK
+
+	SAVE %1, BUFFER	/* 第一引数に指定されたファイルを保存 */
